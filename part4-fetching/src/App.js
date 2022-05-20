@@ -1,53 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 
-import "./App.css";
-import { Note } from "./Note";
-import { getAllNotes, createNote } from "./services/notes/notes";
+import './App.css'
+import { Note } from './Note'
+import { getAllNotes, createNote, updateNote } from './services/notes/notes'
 
-export default function App() {
-  const [notes, setNotes] = useState([]);
-  const [input, setInput] = useState("");
+export default function App () {
+  const [notes, setNotes] = useState([])
+  const [input, setInput] = useState('')
+  const [showImportant, setShowImportant] = useState(false)
 
   useEffect(() => {
-    console.log("useEffect")
-    getAllNotes().then((notes) => setNotes(notes));
+    console.log('useEffect')
+    getAllNotes().then((notes) => setNotes(notes))
 
     return () => {
-      console.log("RemoveEffect")
+      console.log('RemoveEffect')
     }
-  }, []);
+  }, [])
+
+  const handleClick = () => {
+    setShowImportant((prevState) => !prevState)
+  }
 
   const handleSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
-    const newNote = {
-      title: input,
-      body: "Prova",
-      userId: 1,
-    };
+    const newObject = {
+      content: input,
+      date: new Date().toISOString(),
+      important: Math.random() < 0.5
+    }
 
-    createNote(newNote).then((response) => {
-      setNotes([...notes, response]);
-      setInput("");
-    });
-  };
+    createNote(newObject).then((response) => {
+      setNotes([...notes, response])
+      setInput('')
+    })
+  }
 
   const handleOnChange = (event) => {
-    setInput(event.target.value);
-  };
+    setInput(event.target.value)
+  }
+
+  const toggleImportance = (id) => {
+    const note = notes.find((note) => note.id === id)
+    const changedNote = { ...note, important: !note.important }
+
+    updateNote(id, changedNote).then((response) => {
+      setNotes((prevState) => prevState.map(note => note.id !== id ? note : response))
+    })
+  }
 
   return (
-    <div>
+    <div className='principal'>
       <h1>Notes</h1>
+      <button onClick={handleClick}>show {showImportant ? 'all' : 'important'}</button>
       <ol>
-        {notes.map((note) => (
-          <Note key={note.id} {...note} />
-        ))}
+        {notes
+          .filter((note) => showImportant ? note.important : note)
+          .map((note) => (
+            <Note key={note.id} note={note} toggleImportance={() => toggleImportance(note.id)} />
+          ))}
       </ol>
       <form onSubmit={handleSubmit}>
         <input onChange={handleOnChange} type='text' value={input} />
         <button>Save</button>
       </form>
     </div>
-  );
+  )
 }

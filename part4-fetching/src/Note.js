@@ -1,8 +1,12 @@
-export const Note = ({ title, body }) => {
+export const Note = ({ note, toggleImportance }) => {
+  const label = note.important
+    ? 'make not important'
+    : 'make important'
+
   return (
     <li>
-      <p>{title}</p>
-      <small>{body}</small>
+      <span>{note.content}</span>
+      <button className="buttonList" onClick={toggleImportance}>{label}</button>
     </li>
-  );
-};
+  )
+}
